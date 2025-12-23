@@ -10,7 +10,9 @@ class DateWiseReceive extends DbhReport
         $startDate = $startDateTime->format('Y-m-d H:i:s');
         $endDate = $endDateTime->format('Y-m-d H:i:s');
 
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         $section=$_SESSION['section'];
 
 
@@ -65,7 +67,9 @@ class DateWiseReceive extends DbhReport
         $startDate = $startDateTime->format('Y-m-d H:i:s');
         $endDate = $endDateTime->format('Y-m-d H:i:s');
 
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         $section=$_SESSION['section'];
 
 

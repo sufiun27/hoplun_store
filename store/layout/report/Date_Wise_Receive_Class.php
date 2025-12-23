@@ -3,7 +3,11 @@ class DateWiseReceive extends DbhReport
 {
     public function DateWiseReceiveReport($startDate, $endDate)
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+
         $section=$_SESSION['section'];
         $startDateTime = new DateTime($startDate);
         $endDateTime = new DateTime($endDate);
@@ -57,7 +61,10 @@ c.c_name,i.i_name
 
     public function DateWiseNameReceiveReport($startDate, $endDate, $itemName)
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
         $section=$_SESSION['section'];
         
         $startDateTime = new DateTime($startDate);

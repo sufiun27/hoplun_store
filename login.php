@@ -102,8 +102,8 @@ date_default_timezone_set('Asia/Dhaka');
 $defaultDateTime = date('Y-m-d H:i:s');
 
 // Define constants for configuration paths and URLs for maintainability
-const BASE_URL = '127.0.0.1/gs'; // http://127.0.0.1/gs/super_admin/index.php
-const FOLDER_PATH = '/gs'; // /gs/super_admin/index.php
+const BASE_URL = '127.0.0.1/hoplun_store'; // http://127.0.0.1/gs/super_admin/index.php
+const FOLDER_PATH = '/hoplun_store'; // /gs/super_admin/index.php
 const USER_REDIRECT_PATH = '/store/layout/start/';
 const SUPERADMIN_REDIRECT_PATH = '/super_admin/index.php';
 

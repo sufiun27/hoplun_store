@@ -1,12 +1,14 @@
 <?php
-
+//Department_Wise_Issue_Class_Category.php
 class DateWiseReceive extends DbhReport
 {
     public function ReceiveReport($department,$item_name)
     {
         
         
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
 $section=$_SESSION['section'];
 
 
@@ -80,7 +82,9 @@ GROUP BY subquery.d_name, subquery.c_name, subquery.c_id,subquery.i_price,vis.to
 
     public function DateWiseNameReceiveReport($item_name, $department, $start_date, $end_date)
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
 $section=$_SESSION['section'];
 
 

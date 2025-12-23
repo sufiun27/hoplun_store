@@ -4,7 +4,9 @@ class DateWiseReceive extends DbhReport
 {
     public function DateWiseReceiveReport()
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
 $section=$_SESSION['section'];
 
 
@@ -46,7 +48,9 @@ $section=$_SESSION['section'];
 
     public function DateWiseNameReceiveReport($itemName)
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         $section=$_SESSION['section'];
 
 

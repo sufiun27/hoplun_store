@@ -19,14 +19,13 @@ include '../template/header.php';
 
 
 <!--#####################################################-->
-<div id="layoutSidenav_content">
-    <main >
+
         <div class="container-fluid px-4">
             <!--body#####################################################-->
             <?php
             if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 //////////////////////////////////////////
-                include './db/db.php';
+                
                 include 'Date_Wise_Issue_Class.php';
                 //////////////////////////////////////////
                 $start_date = $_POST['start_date'];

@@ -2,7 +2,7 @@
 <?php
 include '../template/header.php';
 
-include './db/db.php';
+
 include 'Department_Wise_Issue_Class_Category.php';
 ?>
 <style>
@@ -22,8 +22,7 @@ include 'Department_Wise_Issue_Class_Category.php';
 
 
 <!--#####################################################-->
-<div id="layoutSidenav_content">
-    <main >
+
         <div class="container-fluid px-4">
             <!--body#####################################################-->
             <?php

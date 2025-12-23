@@ -1,14 +1,9 @@
-<!--### Header Part ##################################################-->
 <?php
 include '../template/header.php';
 ?>
-<style>
-    td{font-size: 12px;}
-</style>
-<!--#####################################################-->
+<style>td { font-size: 12px; }</style>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    // Add 'show' class to the element with ID "collapseLayouts2"
     $(document).ready(function() {
         $("#collapsePages_report").addClass("show");
         $("#pagesCollapseStoreReport").addClass("show");
@@ -16,202 +11,131 @@ include '../template/header.php';
     });
 </script>
 
+<div class="container-fluid px-4">
+    <?php
+    $filename = ""; 
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        include 'Invoice_wise_Balance_Items_Class.php';
+        
+        $start_date = $_POST['start_date'] ?? '';
+        $end_date   = $_POST['end_date'] ?? '';
+        $item_name  = $_POST['item_name'] ?? '';
+        
+        $obj = new DateWiseReceive();
+        $reportData = [];
 
+        if (!empty($item_name) && empty($start_date)) {
+            $reportData = $obj->DateWiseNameReceiveReport($item_name);
+        } elseif (!empty($start_date) && !empty($end_date)) {
+            $reportData = $obj->DateWiseReceiveReport($start_date, $end_date);
+        }
 
-<!--#####################################################-->
-<div id="layoutSidenav_content">
-    <main >
-        <div class="container-fluid px-4">
-            <!--body#####################################################-->
-            <?php
-            if ($_SERVER["REQUEST_METHOD"] == "POST") {
-                //////////////////////////////////////////
-                include './db/db.php';
-                include 'Invoice_wise_Balance_Items_Class.php';
-                //////////////////////////////////////////
-                $start_date = $_POST['start_date'];
-                $end_date = $_POST['end_date'];
-                $item_name = $_POST['item_name'];
-                $obj= new DateWiseReceive();
-                if(isset($item_name) and (empty($start_date) && empty($end_date))){
-                    $reportData=$obj->DateWiseNameReceiveReport($item_name);
-                }elseif (isset($start_date) and isset($end_date)){
-                    $reportData=$obj->DateWiseReceiveReport($start_date,$end_date);
-                }
-            }
-            ?>
-            <!-------------------------------------------------->
-            <?php
+        if (!empty($reportData)) {
             require 'vendor/autoload.php';
-            if (isset($reportData)) {
+            $spreadsheet = new PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            
+            // Initialize Totals to avoid Undefined Variable errors
+            $totalPurchasePrice = 0;
+            $totalRequestQty = 0;
+            $totalReceiveQty = 0;
+            $totalCost = 0;
 
-
-                // Export the report to an Excel file
-                $spreadsheet = new PhpOffice\PhpSpreadsheet\Spreadsheet();
-                $sheet = $spreadsheet->getActiveSheet();
-                $rowNumber = 1;
-
-                // Set headers in the Excel file
-                $headers = ['po_no', 'category', 'item', 'size', 'unit', 'system_price','purchase price', 'request_qty', 'receive_qty', 'cost'];
-                $columnNumber = 1;
-                foreach ($headers as $header) {
-                    $sheet->setCellValueByColumnAndRow($columnNumber, $rowNumber, $header);
-                    $columnNumber++;
-                }
-
-                // Set data in the Excel file
-                $rowNumber = 2;
-                foreach ($reportData as $row) {
-                    $columnNumber = 1;
-                    foreach ($row as $cellData) {
-                        $sheet->setCellValueByColumnAndRow($columnNumber, $rowNumber, $cellData);
-                        $columnNumber++;
-                        // $totalPurchasePrice += $cellData['purchase_price'];
-                        // Update totals
-                        switch ($columnNumber) {
-                            case 8: // purchase_price
-                                $totalPurchasePrice += $cellData;
-                                break;
-                            case 9: // request_qty
-                                $totalRequestQty += $cellData;
-                                break;
-                            case 10: // receive_qty
-                                $totalReceiveQty += $cellData;
-                                break;
-                            case 11: // cost
-                                $totalCost += $cellData;
-                                break;
-                        }
-                    }
-                    $rowNumber++;
-                }
-
-                // Add total rows
-                $rowNumber++;
-                $sheet->setCellValueByColumnAndRow(1, $rowNumber, 'Total ');
-                $sheet->setCellValueByColumnAndRow(7, $rowNumber, $totalPurchasePrice);
-
-                
-                
-                $sheet->setCellValueByColumnAndRow(8, $rowNumber, $totalRequestQty);
-
-                
-               
-                $sheet->setCellValueByColumnAndRow(9, $rowNumber, $totalReceiveQty);
-
-                
-               
-                $sheet->setCellValueByColumnAndRow(10, $rowNumber, $totalCost);
-
-
-
-                // Save the Excel file
-                $writer = new PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-                $filename = 'Invoice_wise_Balance_Items.xlsx';
-                $writer->save($filename);
+            // Set headers
+            $headers = ['PO No', 'Category', 'Item', 'Size', 'Unit', 'System Price', 'Purchase Price', 'Request Qty', 'Receive Qty', 'Cost'];
+            foreach ($headers as $index => $header) {
+                $sheet->setCellValueByColumnAndRow($index + 1, 1, $header);
             }
-            ?>
-            <!----------------------------------------------------------->
-            <b><span class="text-success">Invoice Wise Balance Items</span></b>
-            <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
 
-                <label for="start_date">Start Date:</label>
-                <input type="datetime-local" name="start_date" >
+            $rowNumber = 2;
+            foreach ($reportData as $row) {
+                // Map data explicitly to ensure correct column alignment
+                $sheet->setCellValueByColumnAndRow(1, $rowNumber, $row['po_no']);
+                $sheet->setCellValueByColumnAndRow(2, $rowNumber, $row['category']);
+                $sheet->setCellValueByColumnAndRow(3, $rowNumber, $row['item']);
+                $sheet->setCellValueByColumnAndRow(4, $rowNumber, $row['size']);
+                $sheet->setCellValueByColumnAndRow(5, $rowNumber, $row['unit']);
+                $sheet->setCellValueByColumnAndRow(6, $rowNumber, $row['system_price']);
+                $sheet->setCellValueByColumnAndRow(7, $rowNumber, $row['purchase_price']);
+                $sheet->setCellValueByColumnAndRow(8, $rowNumber, $row['request_qty']);
+                $sheet->setCellValueByColumnAndRow(9, $rowNumber, $row['receive_qty']);
+                $sheet->setCellValueByColumnAndRow(10, $rowNumber, $row['cost']);
 
-                <label for="end_date">End Date:</label>
-                <input type="datetime-local" name="end_date" >
+                // Calculate Totals
+                $totalPurchasePrice += (float)$row['purchase_price'];
+                $totalRequestQty    += (float)$row['request_qty'];
+                $totalReceiveQty    += (float)$row['receive_qty'];
+                $totalCost          += (float)$row['cost'];
+                
+                $rowNumber++;
+            }
 
-                <label for="item_name">Invoice No:</label>
-                <input type="text" name="item_name" >
+            // Total Row
+            $sheet->setCellValueByColumnAndRow(1, $rowNumber, 'TOTAL');
+            $sheet->setCellValueByColumnAndRow(7, $rowNumber, $totalPurchasePrice);
+            $sheet->setCellValueByColumnAndRow(8, $rowNumber, $totalRequestQty);
+            $sheet->setCellValueByColumnAndRow(9, $rowNumber, $totalReceiveQty);
+            $sheet->setCellValueByColumnAndRow(10, $rowNumber, $totalCost);
 
-                <input type="submit" value="Generate Report">
-                <span><a href="<?php echo $filename; ?>"><i class="fas fa-file-export"></i> Export</a></span>
+            $writer = new PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $filename = 'Invoice_wise_Balance_Items.xlsx';
+            $writer->save($filename);
+        }
+    }
+    ?>
 
-            </form>
+    <b><span class="text-success">Invoice Wise Balance Items</span></b>
+    <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post" class="mb-3">
+        <label>Start Date:</label>
+        <input type="datetime-local" name="start_date">
+        <label>End Date:</label>
+        <input type="datetime-local" name="end_date">
+        <label>Invoice No:</label>
+        <input type="text" name="item_name">
+        <input type="submit" value="Generate Report" class="btn btn-primary btn-sm">
+        <?php if ($filename): ?>
+            <span><a href="<?php echo $filename; ?>" class="btn btn-success btn-sm"><i class="fas fa-file-export"></i> Export</a></span>
+        <?php endif; ?>
+    </form>
 
-<!-------------------------------------------------------------------------->
-
-<!------------------------------------------------------------------------>
-
-<!----------------------------------------------------------------------------------->
-            <style>
-                #customers {
-                    font-family: Arial, Helvetica, sans-serif;
-                    border-collapse: collapse;
-                    width: 100%;
-                }
-
-                #customers td, #customers th {
-                    border: 1px solid #ddd;
-                    padding: 2px;
-                }
-
-                #customers tr:nth-child(even){background-color: #f2f2f2;}
-
-                #customers tr:hover {background-color: #ddd;}
-
-                #customers th {
-                    padding-top: 2px;
-                    padding-bottom: 2px;
-                    text-align: left;
-                    background-color: #04AA6D;
-                    color: white;
-                }
-            </style>
-<!----------------------------------------------------------------------------------->
-            <?php if(isset($reportData)): ?>
-
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-table me-1"></i>
-                    DataTable Example
-                </div>
-                <div class="card-body">
-                    <table id="datatablesSimple">
-                        <thead>
-                        <tr>
-                            <th>PO No</th>
-                            <th>Category</th>
-                            <th>item</th>
-                            <th>size</th>
-                            <th>unit</th>
-                            <th>system_price</th>
-                            <th>purchase_price</th>
-                            <th>request_qty</th>
-                            <th>receive_qty</th>
-                            <th>cost</th>
-                        </tr>
-                        </thead>
-
+    <?php if (!empty($reportData)): ?>
+    <div class="card mb-4">
+        <div class="card-header"><i class="fas fa-table me-1"></i> Report Results</div>
+        <div class="card-body">
+            <table id="datatablesSimple" class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>PO No</th>
+                        <th>Category</th>
+                        <th>Item</th>
+                        <th>Size</th>
+                        <th>Unit</th>
+                        <th>System Price</th>
+                        <th>Purchase Price</th>
+                        <th>Request Qty</th>
+                        <th>Receive Qty</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
                     <?php foreach ($reportData as $row): ?>
-                        <tr>
-                            <td><?php echo $row['po_no']; ?></td>
-                            <td><?php echo $row['category']; ?></td>
-                            <td><?php echo $row['item']; ?></td>
-                            <td><?php echo $row['size']; ?></td>
-                            <td><?php echo $row['unit']; ?></td>
-                            <td><?php echo $row['system_price']; ?></td>
-                            <td><?php echo $row['purchase_price']; ?></td>
-                            <td><?php echo $row['request_qty']; ?></td>
-                            <td><?php echo $row['receive_qty']; ?></td>
-                            <td><?php echo $row['cost']; ?></td>
-                            
-                        </tr>
+                    <tr>
+                        <td><?php echo htmlspecialchars($row['po_no']); ?></td>
+                        <td><?php echo htmlspecialchars($row['category']); ?></td>
+                        <td><?php echo htmlspecialchars($row['item']); ?></td>
+                        <td><?php echo htmlspecialchars($row['size']); ?></td>
+                        <td><?php echo htmlspecialchars($row['unit']); ?></td>
+                        <td><?php echo number_format($row['system_price'], 2); ?></td>
+                        <td><?php echo number_format($row['purchase_price'], 2); ?></td>
+                        <td><?php echo $row['request_qty']; ?></td>
+                        <td><?php echo $row['receive_qty']; ?></td>
+                        <td><?php echo number_format($row['cost'], 2); ?></td>
+                    </tr>
                     <?php endforeach; ?>
-                </table>
-
-            <?php endif; ?>
-
-
-
-
-            <!--#####################################################-->
+                </tbody>
+            </table>
         </div>
-    </main>
-
-
-<!--###### Footer Part ###############################################-->
-<?php
-include '../template/footer.php';
-?>
-<!--#####################################################-->
+    </div>
+    <?php endif; ?>
+</div>
+<?php include '../template/footer.php'; ?>
