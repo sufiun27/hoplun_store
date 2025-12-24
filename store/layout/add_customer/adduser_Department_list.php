@@ -2,164 +2,167 @@
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
+
+// 1. Include the Database class and Header
+
 include '../template/header.php';
+
+$db = new Database();
 ?>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+
+    $(document).ready(function() {
+
+        $("#collapseLayouts").addClass("show");
+
+        $("#collapseLayouts_department").addClass("active bg-success");
+
+        
+
+        setTimeout(function() {
+
+            $("#statusMessage").fadeOut("slow");
+
+        }, 3000);
+
+    });
+
+</script>
+<div class="container-fluid px-4 py-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">Department Management</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="../dashboard.php">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Departments</li>
+                </ol>
+            </nav>
+        </div>
+        <a href="http://<?php echo $_SESSION['base_url']; ?>/store/layout/add_customer/adddepartment.php" 
+           class="btn btn-primary shadow-sm">
+            <i class="fas fa-plus fa-sm text-white-50 me-1"></i> Add New Department
+        </a>
+    </div>
+
+    <?php if (isset($_GET['status'])): ?>
+        <div id="statusMessage" class="alert alert-<?php echo $_GET['status'] === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas <?php echo $_GET['status'] === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'; ?> me-2"></i>
+            <?php echo $_GET['status'] === 'success' ? 'Operation completed successfully!' : 'An error occurred during the operation.'; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center bg-light">
+            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-table me-2"></i>Department List</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" id="departmentTable" width="100%" cellspacing="0">
+                    <thead class="table-light text-secondary">
+                        <tr>
+                            <th>Short Name</th>
+                            <th>Full Name</th>
+                            <th class="text-center">Employees</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        try {
+                            $sql = "SELECT d.d_active, d.d_id, d.d_full_name, d.d_name, 
+                                           ISNULL(e.total_employee, 0) as total_employee
+                                    FROM department d 
+                                    LEFT JOIN (
+                                        SELECT d_id, COUNT(e_id) as total_employee 
+                                        FROM employee GROUP BY d_id
+                                    ) e ON e.d_id = d.d_id";
+
+                            $conn = $db->getConnection();
+                            $stmt = $conn->prepare($sql);
+                            $stmt->execute();
+                            $result = $stmt->fetchAll();
+
+                            if ($result):
+                                foreach ($result as $row):
+                                    $d_id = $row['d_id'];
+                                    $isActive = $row['d_active'] == 1;
+                        ?>
+                            <tr>
+                                <td class="fw-bold text-dark"><?php echo htmlspecialchars($row['d_name']); ?></td>
+                                <td><?php echo htmlspecialchars($row['d_full_name']); ?></td>
+                                <td class="text-center">
+                                    <span class="badge bg-info text-dark rounded-pill">
+                                        <?php echo $row['total_employee']; ?>
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <?php if ($isActive): ?>
+                                        <span class="badge bg-success-subtle text-success border border-success px-3">
+                                            <i class="fas fa-check me-1"></i> Active
+                                        </span>
+                                        <a href="adduser_Department_list_deactive.php?id=<?php echo $d_id; ?>" class="ms-2 text-warning" title="Deactivate">
+                                            <i class="fas fa-toggle-on fa-lg"></i>
+                                        </a>
+                                    <?php else: ?>
+                                        <span class="badge bg-danger-subtle text-danger border border-danger px-3">
+                                            <i class="fas fa-times me-1"></i> Inactive
+                                        </span>
+                                        <a href="adduser_Department_list_active.php?id=<?php echo $d_id; ?>" class="ms-2 text-secondary" title="Activate">
+                                            <i class="fas fa-toggle-off fa-lg"></i>
+                                        </a>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="adduser_list_department_edit.php?id=<?php echo $d_id; ?>" class="btn btn-outline-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="adduser_dep_delete.php?id=<?php echo $d_id; ?>" 
+                                           class="btn btn-outline-danger" 
+                                           onclick="return confirm('Are you sure you want to delete this department?');" 
+                                           title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php 
+                                endforeach;
+                            else: 
+                        ?>
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">No department records found.</td>
+                            </tr>
+                        <?php endif; 
+                        } catch (Exception $e) {
+                            echo '<tr><td colspan="5" class="text-danger text-center">Error: ' . htmlspecialchars($e->getMessage()) . '</td></tr>';
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
+        // UI Navigation Highlighting
         $("#collapseLayouts").addClass("show");
-        $("#collapseLayouts_department").addClass("active bg-success");
+        $("#collapseLayouts_department").addClass("active bg-primary text-white");
         
+        // Auto-hide alerts
         setTimeout(function() {
-            $("#statusMessage").fadeOut("slow");
-        }, 3000);
+            $(".alert").fadeOut("slow");
+        }, 4000);
     });
 </script>
 
-
-    <div style="padding:20px;">
-        <h1 style="margin-top:20px;">Department List
-        <a id="collapseLayouts_add_department"
-   href="http://<?php echo $_SESSION['base_url']; ?>/store/layout/add_customer/adddepartment.php"
-   class="btn btn-success btn-sm d-inline-flex align-items-center gap-1"
-   role="button"
-   aria-label="Add new department">
-    <i class="fas fa-building"></i>
-    <span>Add New Departments</span>
-</a>
-
-        </h1>
-        <ol style="margin-bottom:20px;padding-left:15px;list-style:decimal;">
-            <li style="display:inline;margin-right:10px;"><a href="../dashboard.php" style="text-decoration:none;color:#007bff;">Dashboard</a></li>
-            <li style="display:inline;color:#6c757d;"> / Department List</li>
-        </ol>
-        
-        <?php
-        if (isset($_GET['status'])) {
-            $status = $_GET['status'];
-            $message = '';
-            $bgColor = '';
-            $textColor = '';
-
-            if ($status === 'success') {
-                $message = 'Operation completed successfully!';
-                $bgColor = '#d4edda';
-                $textColor = '#155724';
-            } elseif ($status === 'error') {
-                $message = 'An error occurred during the operation.';
-                $bgColor = '#f8d7da';
-                $textColor = '#721c24';
-            }
-
-            if (!empty($message)) {
-                echo '<div id="statusMessage" style="
-                        background-color:' . $bgColor . ';
-                        color:' . $textColor . ';
-                        padding:15px 20px;
-                        border-radius:4px;
-                        margin-bottom:15px;
-                        position:relative;
-                        border:1px solid ' . $textColor . ';">
-                        ' . htmlspecialchars($message) . '
-                        <button type="button" onclick="this.parentElement.style.display=\'none\'" style="
-                            position:absolute;
-                            top:5px;
-                            right:10px;
-                            background:none;
-                            border:none;
-                            font-size:16px;
-                            font-weight:bold;
-                            cursor:pointer;
-                            color:' . $textColor . ';">&times;</button>
-                      </div>';
-            }
-        }
-
-        if (!isset($_SESSION['company'])) {
-            echo '<div style="background-color:#f8d7da;color:#721c24;padding:15px 20px;border-radius:4px;margin-bottom:15px;">Company session variable not set. Cannot connect to database.</div>';
-        } else {
-            $user_company = $_SESSION['company'];
-            $database = $user_company;
-            $conn = null;
-
-            try {
-                $conn = new PDO("sqlsrv:Server=$servername;Database=$database", $username, $password);
-                $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                
-                $sql = "SELECT d.d_active, d.d_id, d.d_full_name, d.d_name , ISNULL(e.total_employee, 0) as total_employee
-                        FROM department d 
-                        LEFT JOIN (
-                            SELECT d_id, COUNT(e_id) as total_employee from employee GROUP BY d_id
-                        ) e 
-                        ON e.d_id = d.d_id";
-
-                $stmt = $conn->prepare($sql);
-                $stmt->execute();
-                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-                if ($result) {
-                    echo '<div style="border:1px solid #ddd;border-radius:4px;margin-bottom:20px;">
-                            <div style="padding:10px 15px;font-weight:bold;background-color:#f5f5f5;">
-                                Department Data List
-                            </div>
-                            <div style="padding:15px;overflow-x:auto;">
-                                <table style="width:100%;border-collapse:collapse;">
-                                    <thead>
-                                        <tr>
-                                            <th style="border:1px solid #ddd;padding:8px;font-size:12px;font-weight:bold;">Short Name</th>
-                                            <th style="border:1px solid #ddd;padding:8px;font-size:12px;font-weight:bold;">Full Name</th>
-                                            <th style="border:1px solid #ddd;padding:8px;font-size:12px;font-weight:bold;">Total Employees</th>
-                                            <th style="border:1px solid #ddd;padding:8px;font-size:12px;font-weight:bold;">Status</th>
-                                            <th style="border:1px solid #ddd;padding:8px;font-size:12px;font-weight:bold;">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>';
-
-                    foreach ($result as $row) {
-                        $department_id = htmlspecialchars($row["d_id"]);
-                        echo '<tr>
-                                <td style="border:1px solid #ddd;padding:8px;font-size:12px;">' . htmlspecialchars($row["d_name"]) . '</td>
-                                <td style="border:1px solid #ddd;padding:8px;font-size:12px;">' . htmlspecialchars($row["d_full_name"]) . '</td>
-                                <td style="border:1px solid #ddd;padding:8px;font-size:12px;text-align:center;">' . htmlspecialchars($row["total_employee"]) . '</td>';
-
-                        if ($row["d_active"] == 1) {
-                            echo '<td style="border:1px solid #ddd;padding:8px;font-size:12px;text-align:center;color:#28a745;">
-                                    &#10004; Active
-                                    <a href="adduser_Department_list_deactive.php?id=' . $department_id . '" style="display:inline-block;background-color:#ffc107;color:#212529;padding:2px 5px;font-size:10px;border-radius:3px;text-decoration:none;margin-left:5px;">&#10006;</a>
-                                  </td>';
-                        } else {
-                            echo '<td style="border:1px solid #ddd;padding:8px;font-size:12px;text-align:center;color:#dc3545;">
-                                    &#10006; Inactive
-                                    <a href="adduser_Department_list_active.php?id=' . $department_id . '" style="display:inline-block;background-color:#28a745;color:#fff;padding:2px 5px;font-size:10px;border-radius:3px;text-decoration:none;margin-left:5px;">&#10004;</a>
-                                  </td>';
-                        }
-
-                        echo '<td style="border:1px solid #ddd;padding:8px;font-size:12px;text-align:center;">
-                                <a href="adduser_list_department_edit.php?id=' . $department_id . '" style="display:inline-block;background-color:#007bff;color:#fff;padding:2px 5px;font-size:10px;border-radius:3px;text-decoration:none;margin-right:3px;">&#9998;</a>
-                                <a href="adduser_dep_delete.php?id=' . $department_id . '" onclick="return confirm(\'Are you sure you want to delete department: ' . htmlspecialchars($row["d_full_name"]) . '?\');" style="display:inline-block;background-color:#dc3545;color:#fff;padding:2px 5px;font-size:10px;border-radius:3px;text-decoration:none;">&#128465;</a>
-                              </td>
-                            </tr>';
-                    }
-
-                    echo '</tbody>
-                        </table>
-                        </div>
-                        </div>';
-                } else {
-                    echo '<div style="background-color:#d1ecf1;color:#0c5460;padding:15px 20px;border-radius:4px;">No department records found.</div>';
-                }
-            } catch (PDOException $e) {
-                echo '<div style="background-color:#f8d7da;color:#721c24;padding:15px 20px;border-radius:4px;">Database Error: ' . htmlspecialchars($e->getMessage()) . '</div>';
-            } catch (Exception $e) {
-                echo '<div style="background-color:#f8d7da;color:#721c24;padding:15px 20px;border-radius:4px;">General Error: ' . htmlspecialchars($e->getMessage()) . '</div>';
-            } finally {
-                $conn = null;
-            }
-        }
-        ?>
-    </div>
-
-
-<?php
-include '../template/footer.php';
-?>
+<?php include '../template/footer.php'; ?>

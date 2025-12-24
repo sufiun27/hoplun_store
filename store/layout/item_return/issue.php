@@ -3,11 +3,13 @@ include '../template/header.php';
 ?>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    // Add 'show' class to the element with ID "collapseLayouts2"
-    $(document).ready(function() {
-        $("#collapseLayouts4").addClass("show");
-        $("#collapseLayouts4_add").addClass("active bg-success");
-    });
+$(document).ready(function() {
+    $("#collapseLayouts5").addClass("show");
+    $("#collapseLayouts5_add").addClass("active bg-success text-white");
+
+    // Hide alert after 3 sec
+    setTimeout(() => { $("#message").fadeOut(); }, 3000);
+});
 </script>
 
 

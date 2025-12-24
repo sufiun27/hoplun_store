@@ -9,7 +9,7 @@ require_once '../database.php';
         // Activate the relevant navigation links (Adjust IDs as needed)
         $("#collapseLayouts0").addClass("show");
         // You might want to create a new ID for the combined page
-        $("#collapseLayouts0_management").addClass("active bg-success text-white"); 
+        $("#collapseLayouts0_search").addClass("active bg-success text-white"); 
 
         // Initial setup: The list will be visible, the search result container is hidden initially
         // but will receive the list's content, so we ensure the list is displayed.

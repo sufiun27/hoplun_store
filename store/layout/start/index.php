@@ -1,234 +1,260 @@
-
 <?php
 include '../template/header.php';
-?>
 
-<?php
-// ----------------------------------------------------
-// 4. Helper Function
-// ----------------------------------------------------
-$db = new Database();
-
-// Function to safely fetch a counter value using the Database object
-function get_count(Database $db, string $sql): int {
-    // Handle potential null return from fetchSingleColumn if connection/query fails 
-    $value = $db->fetchSingleColumn($sql);
-    return (int)($value ?? 0); 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
-// --- Data Fetching (Counters) ---
+if (!isset($_SESSION['is_logged_in']) || $_SESSION['is_logged_in'] !== true) {
+    header("Location: ../../logout/logout.php");
+    exit();
+}
+
+$db = new Database();
+$pdo = $db->getConnection();
+
+/* ======================================================
+   1. HELPER FUNCTION
+====================================================== */
+function get_count(Database $db, string $sql, array $params = []): int {
+    $pdo = $db->getConnection();
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $val = $stmt->fetchColumn();
+    return (int)($val ?: 0);
+}
+
+/* ======================================================
+   2. PAGINATION LOGIC
+====================================================== */
+$limit = 10; // Records per page
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+if ($page < 1) $page = 1;
+$offset = ($page - 1) * $limit;
+
+/* ======================================================
+   3. DASHBOARD COUNTS
+====================================================== */
 $total_employees = get_count($db, "SELECT COUNT(e_name) FROM employee");
 
-$sql_uncomplete_receive = "
+$uncomplete_receive_count = get_count($db, "
     SELECT COUNT(ip.p_id)
     FROM item_purchase ip
     INNER JOIN (
         SELECT p_id, SUM(p_recive_qty) AS total_received_qty
         FROM tem_purchase_recive
         GROUP BY p_id
-    ) AS tpr ON ip.p_id = tpr.p_id
+    ) tpr ON ip.p_id = tpr.p_id
     WHERE ip.p_req_qty > tpr.total_received_qty
-";
-$uncomplete_receive_count = get_count($db, $sql_uncomplete_receive);
+");
 
-$sql_unreceived_items = "
-    SELECT COUNT(ip.p_id)
-    FROM item_purchase ip                                
-    WHERE ip.p_request = 1 AND ip.p_recive = 0
-";
-$unreceived_items_count = get_count($db, $sql_unreceived_items);
+$unreceived_items_count = get_count($db, "SELECT COUNT(p_id) FROM item_purchase WHERE p_request = 1 AND p_recive = 0");
+$stock_out_items_count = get_count($db, "SELECT COUNT(i.i_id) FROM item i LEFT JOIN balance b ON i.i_id = b.i_id WHERE b.qty_balance < i.stock_out_reminder_qty");
+$unaccept_items_count = get_count($db, "SELECT COUNT(p_id) FROM item_purchase WHERE p_request = 0");
 
-$sql_stock_out_items = "
-    SELECT COUNT(i.i_id)
-    FROM item i 
-    LEFT JOIN balance b ON i.i_id = b.i_id             
-    WHERE b.qty_balance < i.stock_out_reminder_qty
-";
-$stock_out_items_count = get_count($db, $sql_stock_out_items);
-
-$sql_unaccept_items = "
-    SELECT COUNT(ip.p_id)
-    FROM item_purchase ip                                
-    WHERE ip.p_request = 0
-";
-$unaccept_items_count = get_count($db, $sql_unaccept_items);
-
-
-// --- Data Fetching (Main Table) ---
+/* ======================================================
+   4. DATA FETCHING (MS-SQL COMPLIANT)
+====================================================== */
+$section = $_SESSION['section'] ?? null;
 $table_data = [];
-$section = $_SESSION['section'] ?? null; 
+$total_pages = 0;
+$search1 = null;
+$search2 = null;
+if (isset($_GET['search'])) {
+    $search1 = $_GET['search'];
+    $search2 = $_GET['search'];
 
-$base_query = "
-    SELECT 
-        b.c_name, b.i_name, b.total_item_purchase, b.total_item_issue, 
-        b.total_item_purchase_price, b.total_item_issue_price, 
-        b.qty_balance, b.item_issue_avg_price
+    $search1 = '%' . $search1 . '%';
+    $search2 = '%' . $search2 . '%';
+}
+
+if ($section && $pdo) {
+    // Get total count for this section
+    $count_sql = "
+    SELECT COUNT(1)
     FROM balance b
-    INNER JOIN item i ON i.i_id = b.i_id 
-    INNER JOIN item_purchase ip ON ip.i_id = i.i_id
-    WHERE i.section = ?
-    ORDER BY ip.p_request_accept_datetime DESC
+    INNER JOIN item i ON i.i_id = b.i_id
+    WHERE i.section = :section
 ";
 
-if (isset($_SESSION['table']) && $_SESSION['table'] === 'short') {
-    $query = "SELECT TOP(50) T.* FROM (" . $base_query . ") AS T";
-} elseif (isset($_SESSION['table']) && $_SESSION['table'] === 'all') {
-    $query = $base_query;
-} else {
-    $query = null; 
+$params = [':section' => $section];
+
+// Add search condition if needed
+if (!empty($search1) || !empty($search2)) {
+    $count_sql .= " AND (b.c_name LIKE :search1 OR b.i_name LIKE :search2)";
+    $params[':search1'] = '%' . $search1 . '%';
+    $params[':search2'] = '%' . $search2 . '%';
 }
 
-$pdo = $db->getConnection(); 
+$total_records = get_count($db, $count_sql, $params);
+$total_pages = ceil($total_records / $limit);
 
-if ($query && $section && $pdo) {
-    try {
-        $stmt = $pdo->prepare($query);
-        $stmt->execute([$section]);
-        $table_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        error_log("Table Data Query Error: " . $e->getMessage());
-        echo "<p class='alert alert-danger'>Could not load table data due to a database error. Please check the logs.</p>";
+
+    // MS SQL Server Pagination Query
+    $query = "
+        SELECT 
+            ip.p_id, ip.p_request_accept_datetime,
+            b.c_name, b.i_name, b.total_item_purchase, b.total_item_issue,
+            b.qty_balance, b.item_issue_avg_price
+        FROM balance b
+        INNER JOIN item i ON i.i_id = b.i_id
+        INNER JOIN item_purchase ip ON ip.i_id = i.i_id
+        WHERE i.section = :section ";
+
+    if ($search1 && $search2) {
+        $query .= "AND (b.c_name LIKE :search1 OR b.i_name LIKE :search2)";
     }
-} elseif (!$pdo) {
-    // The Database class already outputted an error, but a final check here is fine.
-    // The counters would already be 0.
+
+
+     $query .=   "ORDER BY ip.p_request_accept_datetime DESC
+        OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
+    ";
+
+    $stmt = $pdo->prepare($query);
+
+    if ($search1 && $search2) {
+        $stmt->bindValue(':search1', $search1, PDO::PARAM_STR);
+        $stmt->bindValue(':search2', $search2, PDO::PARAM_STR);
+    }
+    $stmt->bindValue(':section', $section, PDO::PARAM_STR);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+    $table_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-
-
-// ----------------------------------------------------
-// 5. HTML Output Starts
-// ----------------------------------------------------
 ?>
 
+<style>
+    .stat-card { border: none; border-radius: 12px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+    .bg-grad-blue { background: linear-gradient(135deg, #1e3a8a, #3b82f6); }
+    .bg-grad-orange { background: linear-gradient(135deg, #ea580c, #fb923c); }
+    .bg-grad-green { background: linear-gradient(135deg, #15803d, #22c55e); }
+    .bg-grad-red { background: linear-gradient(135deg, #b91c1c, #ef4444); }
+    .pagination .page-link { border-radius: 5px; margin: 0 2px; color: #444; }
+    .pagination .page-item.active .page-link { background-color: #1e3a8a; border-color: #1e3a8a; color: #fff; }
+</style>
 
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold m-0">Operations Dashboard</h2>
+        <span class="badge bg-secondary p-2">Total Employees: <?= $total_employees ?></span>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<?php echo "total employee is: " . $total_employees; ?>
-
-
-        <div class="container-fluid px-4">
-            <h1 class="mt-4">Dashboard</h1>
-            <ol class="breadcrumb mb-4">
-                <li class="breadcrumb-item active"><marquee> 
-                Established in 1992, we have been providing quality fashion lingerie and swimwear to major global retailers for over two decades.
-                We take pride in our excellence in offering reliable services from product design to manufacturing and in achieving the best quality 
-                at a competitive price. Today, Hop Lun employs more than 23,000 people. We have 12 manufacturing 
-                facilities located across 3 countries together with a centralized pre-production office and logistics centre.
-                </marquee></li>
-            </ol>
-
-            <div class="row">
-                <div class="col-xl-3 col-md-6">
-                    <div class="card bg-primary text-white mb-4">
-                        <div class="card-body">Total Uncomplete Receive Items:</div>
-                        <div class="card-footer d-flex align-items-center justify-content-between">
-                            <a class="small text-white stretched-link" href="#">
-                                <?php echo $uncomplete_receive_count; ?>
-                            </a>
-                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card bg-warning text-white mb-4">
-                        <div class="card-body">Total Unreceived Items:</div>
-                        <div class="card-footer d-flex align-items-center justify-content-between">
-                            <a class="small text-white stretched-link" href="#">
-                                <?php echo $unreceived_items_count; ?>
-                            </a>
-                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card bg-success text-white mb-4">
-                        <div class="card-body">Total Stock Out Items</div>
-                        <div class="card-footer d-flex align-items-center justify-content-between">
-                            <a class="small text-white stretched-link" href="#">
-                                <?php echo $stock_out_items_count; ?>
-                            </a>
-                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card bg-danger text-white mb-4">
-                        <div class="card-body">Total Unaccept Item : </div>
-                        <div class="card-footer d-flex align-items-center justify-content-between">
-                            <a class="small text-white stretched-link" href="#">
-                                <?php echo $unaccept_items_count; ?>
-                            </a>
-                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <style>
-                th{ font-size: 12px; }
-                td{ font-size: 10px; }
-            </style>
-
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-table me-1"></i>
-                    DataTable Example
-                </div>
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card stat-card bg-grad-blue text-white">
                 <div class="card-body">
-                    <table id="datatablesSimple">
-                        <thead>
-                            <tr>
-                                <th>Category </th>
-                                <th>Item</th>
-                                <th>Total Purchase</th>
-                                <th>Total Issue</th>
-                                <th>Total Purchase Price</th>
-                                <th>Total Issue Price</th>
-                                <th>Balance</th>
-                                <th>Issue Avg Price</th>
-                            </tr>
-                        </thead>
-                        <tfoot>
-                            <tr>
-                                <th>Category </th>
-                                <th>Item</th>
-                                <th>Total Purchase</th>
-                                <th>Total Issue</th>
-                                <th>Total Purchase Price</th>
-                                <th>Total Issue Price</th>
-                                <th>Balance</th>
-                                <th>Issue Avg Price</th>
-                            </tr>
-                        </tfoot>
-                        <tbody>
-                        <?php
-                        foreach ($table_data as $row) {
-                            echo '<tr>';
-                            foreach ($row as $cell) {
-                                echo '<td>' . htmlspecialchars($cell) . '</td>';
-                            }
-                            echo '</tr>';
-                        }
-                        ?>
-                        </tbody>
-                    </table>
+                    <small class="text-white-50">Incomplete Receives</small>
+                    <h2 class="mb-0"><?= number_format($uncomplete_receive_count) ?></h2>
                 </div>
             </div>
         </div>
-    </main>
+        <div class="col-md-3">
+            <div class="card stat-card bg-grad-orange text-white">
+                <div class="card-body">
+                    <small class="text-white-50">Unreceived Items</small>
+                    <h2 class="mb-0"><?= number_format($unreceived_items_count) ?></h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card bg-grad-green text-white">
+                <div class="card-body">
+                    <small class="text-white-50">Stock Out Alerts</small>
+                    <h2 class="mb-0"><?= number_format($stock_out_items_count) ?></h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card bg-grad-red text-white">
+                <div class="card-body">
+                    <small class="text-white-50">Unaccepted Items</small>
+                    <h2 class="mb-0"><?= number_format($unaccept_items_count) ?></h2>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <hr>
-    <?php
-    print_r($_SESSION);
-    ?>
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-boxes text-primary me-2"></i>Inventory Status</h5>
+            <form action="?" method="GET" class="d-flex align-items-center">
+                <input type="text" name="search" placeholder="Item Name or Category" class="form-control form-control-sm" value="<?= $_GET['search'] ?? '' ?>">
+                <button type="submit" class="btn btn-primary btn-sm ms-2">Search</button>
+            </form>
+            <div class="text-muted small">Page <?= $page ?> of <?= max(1, $total_pages) ?></div>
+        </div>
 
-    <?php
-    // Include the main template footer (assuming relative path is correct)
-    include '../template/footer.php';
-    ?>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle border-top">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Category</th>
+                            <th>Item Name</th>
+                            <th class="text-center">Total Purchase</th>
+                            <th class="text-center">Total Issue</th>
+                            <th class="text-center">Balance</th>
+                            <th class="text-end">Avg Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php if (!empty($table_data)): ?>
+                        <?php foreach ($table_data as $row): ?>
+                            <tr>
+                                <td><span class="text-muted small"><?= htmlspecialchars($row['c_name']) ?></span></td>
+                                <td class="fw-semibold"><?= htmlspecialchars($row['i_name']) ?></td>
+                                <td class="text-center"><?= number_format($row['total_item_purchase']) ?></td>
+                                <td class="text-center"><?= number_format($row['total_item_issue']) ?></td>
+                                <td class="text-center">
+                                    <span class="badge <?= $row['qty_balance'] < 10 ? 'bg-danger' : 'bg-success' ?> rounded-pill">
+                                        <?= number_format($row['qty_balance']) ?>
+                                    </span>
+                                </td>
+                                <td class="text-end fw-bold text-primary">
+                                    <?= number_format($row['item_issue_avg_price'], 2) ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                No records found for this section.
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <?php if ($total_pages > 1): ?>
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?page=<?= $page - 1 ?>"><i class="fas fa-chevron-left"></i></a>
+                    </li>
+
+                    <?php
+                    $window = 2; // Pages to show around current page
+                    for ($i = 1; $i <= $total_pages; $i++):
+                        if($i == 1 || $i == $total_pages || ($i >= $page - $window && $i <= $page + $window)): ?>
+                            <li class="page-item <?= ($page == $i) ? 'active' : '' ?>">
+                                <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+                            </li>
+                        <?php elseif($i == $page - $window - 1 || $i == $page + $window + 1): ?>
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        <?php endif;
+                    endfor; ?>
+
+                    <li class="page-item <?= ($page >= $total_pages) ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?page=<?= $page + 1 ?>"><i class="fas fa-chevron-right"></i></a>
+                    </li>
+                </ul>
+            </nav>
+            <?php endif; ?>
+        </div>
+    </div>
 </div>
 
-<?php 
-// End of file
-?>
+<?php include '../template/footer.php'; ?>

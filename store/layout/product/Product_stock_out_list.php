@@ -14,7 +14,7 @@ include '../template/header.php';
     // Add 'show' class to the element with ID "collapseLayouts2"
     $(document).ready(function() {
         $("#collapseLayouts1").addClass("show");
-        $("#collapseLayouts1_stock_out_list").addClass("active bg-success");
+        $("#collapseLayouts1_stock_out_list").addClass("active bg-success text-white");
     });
 </script>
 

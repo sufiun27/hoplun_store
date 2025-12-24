@@ -15,7 +15,7 @@ include 'Department_Wise_Issue_Class_Category.php';
     $(document).ready(function() {
         $("#collapsePages_report").addClass("show");
         $("#pagesCollapseError").addClass("show");
-        $("#Department_Wise_Issue_Category").addClass("active bg-success");
+        $("#Department_Wise_Issue_Category").addClass("active bg-success text-white");
     });
 </script>
 

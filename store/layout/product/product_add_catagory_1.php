@@ -11,7 +11,7 @@ $section = $_SESSION['section'];
 <script>
 $(document).ready(function() {
     $("#collapseLayouts1").addClass("show");
-    $("#collapseLayouts1_add_category").addClass("active bg-success");
+    $("#collapseLayouts1_add_category").addClass("active bg-success text-white");
 
     // Hide alert after 3 sec
     setTimeout(() => { $("#message").fadeOut(); }, 3000);

@@ -114,6 +114,13 @@ class DbhReport extends Database {
         parent::__construct();
     }
 
+    public function getData(string $sql) {
+        
+        $stmt = $this->connect()->query($sql);
+        $results = $stmt->fetchAll();
+        return $results;
+    }
+
     // This class now inherits getConnection() and fetchSingleColumn()
     // and shares the same PDO instance.
 }

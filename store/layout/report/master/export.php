@@ -8,56 +8,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-class DbInfo {
-    //make change as per hosting
-    private $host = "BDAPPSS02V\SQLEXPRESS";
-    private $user = "sa";
-    private $pass = "sa@123";
-    
-    public function __construct() {
-        // Empty constructor
-    }
-    public function getHost() {
-        return $this->host;
-    }
-
-    public function getUser() {
-        return $this->user;
-    }
-    
-    public function getPass() {
-        return $this->pass;
-    }
-}
-
-class DbhReport extends DbInfo {
-    private $db_name;
-
-    public function __construct() {
-        parent::__construct(); // Call the constructor of the parent class to initialize host, user, and pass.
-        $this->db_name = $_SESSION['company'];
-    }
-
-    protected function connect() {
-        $dsn = "sqlsrv:Server=" . $this->getHost() . ";Database=" . $this->db_name;
-        try {
-            $pdo = new PDO($dsn, $this->getUser(), $this->getPass());
-            $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-            return $pdo;
-        } catch (PDOException $e) {
-            // Handle database connection error here
-            echo "Connection failed: " . $e->getMessage();
-            return null;
-        }
-    }
-
-    public function getData(string $sql) {
-        
-        $stmt = $this->connect()->query($sql);
-        $results = $stmt->fetchAll();
-        return $results;
-    }
-}
+include '../../database.php';
 $section = (string) $_SESSION['section'];
 //type cust into string $section
 
@@ -206,6 +157,7 @@ $intotal_price=0;
                 $totalprice = 0;
 
                 $columnNumber = 2;//transfer
+                $qty_balance = 0; // ✅ FIX
 
                 foreach($departments as $department){
                     
@@ -225,6 +177,7 @@ $intotal_price=0;
                             $found = true;
                             $totalquantity += $price['quantity'];  
                             $avrageprice = $price['avg_price'];
+                            $qty_balance = $price['qty_balance']; // ✅ store once
                             break; // Stop inner loop if condition is met
                         }
                     
@@ -240,24 +193,29 @@ $intotal_price=0;
                     
                 }
                // echo "<td class='bg-info'>{$totalquantity}</td>";
-                $cellData = $totalquantity;
-                $sheet->setCellValueByColumnAndRow($columnNumber, $rowNumber, $cellData);
-                $columnNumber++;
-               // echo "<td class='bg-primary'>{$price['qty_balance']}</td>";
-                $cellData = $price['qty_balance'];
-                $sheet->setCellValueByColumnAndRow($columnNumber, $rowNumber, $cellData);
-                $columnNumber++;
-               // echo "<td class='bg-secondary'>{$avrageprice}</td>";
-                $cellData = $avrageprice;
-                $sheet->setCellValueByColumnAndRow($columnNumber, $rowNumber, $cellData);
-                $columnNumber++;
-                $totalprice = $totalquantity * $avrageprice;
-               // echo "<td class='bg-primary'>{$totalprice}</td>";
-                $cellData = $totalprice;
-                $sheet->setCellValueByColumnAndRow($columnNumber, $rowNumber, $cellData);
-                $columnNumber++;
+                // Total Qty
+$cellData = $totalquantity;
+$sheet->setCellValueByColumnAndRow($columnNumber, $rowNumber, $cellData);
+$columnNumber++;
 
-                $intotal_price += $totalprice;
+// Balance ✅ FIX
+$cellData = $qty_balance;
+$sheet->setCellValueByColumnAndRow($columnNumber, $rowNumber, $cellData);
+$columnNumber++;
+
+// Avg Price
+$cellData = $avrageprice;
+$sheet->setCellValueByColumnAndRow($columnNumber, $rowNumber, $cellData);
+$columnNumber++;
+
+// Total Price
+$totalprice = $totalquantity * $avrageprice;
+$cellData = $totalprice;
+$sheet->setCellValueByColumnAndRow($columnNumber, $rowNumber, $cellData);
+$columnNumber++;
+
+$intotal_price += $totalprice;
+
                 
                // echo "</tr>";
                 

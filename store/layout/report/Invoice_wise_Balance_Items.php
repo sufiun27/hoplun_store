@@ -7,7 +7,7 @@ include '../template/header.php';
     $(document).ready(function() {
         $("#collapsePages_report").addClass("show");
         $("#pagesCollapseStoreReport").addClass("show");
-        $("#Invoice_wise_Balance_Items").addClass("active bg-success");
+        $("#Invoice_wise_Balance_Items").addClass("active bg-success text-white");
     });
 </script>
 

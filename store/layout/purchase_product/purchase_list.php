@@ -61,7 +61,7 @@ $offset = ($page - 1) * $perPage;
     // after DataTables is initialized (usually in footer.php or elsewhere).
     $(document).ready(function() {
         $("#collapseLayouts2").addClass("show");
-        $("#collapseLayouts2_list").addClass("active bg-success");
+        $("#collapseLayouts2_list").addClass("active bg-success text-white");
 
         // FIX 1: Capture DataTables state before submitting View form
         $('form.view-form').submit(function() {

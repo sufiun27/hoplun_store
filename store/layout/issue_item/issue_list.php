@@ -6,7 +6,7 @@ include '../template/header.php';
     $(document).ready(function() {
         // Highlight the current menu item
         $("#collapseLayouts3").addClass("show");
-        $("#collapseLayouts4_add").addClass("active bg-success");
+        $("#collapseLayouts4_add").addClass("active bg-success text-white");
         
         // Hide success/error message after 5 seconds
         setTimeout(function() {

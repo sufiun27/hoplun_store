@@ -13,8 +13,8 @@ include '../layoutdbconnection.php';
 <script>
     // Add 'show' class to the element with ID "collapseLayouts2"
     $(document).ready(function() {
-        $("#collapseLayouts4").addClass("show");
-        $("#collapseLayouts4_list").addClass("active bg-success");
+        $("#collapseLayouts5").addClass("show");
+        $("#collapseLayouts5_list").addClass("active bg-success text-white");
     });
 </script>
 

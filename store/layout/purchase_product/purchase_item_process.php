@@ -11,7 +11,7 @@ include '../template/header.php'; // Bootstrap, icons, jQuery included
     $(document).ready(function() {
         // Highlight the current menu item
         $("#collapseLayouts2").addClass("show");
-        $("#collapseLayouts2_add").addClass("active bg-success");
+        $("#collapseLayouts2_add").addClass("active bg-success text-white");
         
         // Hide success/error message after 5 seconds
         setTimeout(function() {

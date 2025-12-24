@@ -14,7 +14,7 @@ include '../template/header.php';
     $(document).ready(function() {
         $("#collapsePages_report").addClass("show");
         $("#pagesCollapseStoreReport").addClass("show");
-        $("#dateWiseRecive").addClass("active bg-success");
+        $("#dateWiseRecive").addClass("active bg-success text-white");
     });
 </script>
 

@@ -12,9 +12,10 @@ include '../template/header.php';
 <script>
     // Add 'show' class to the element with ID "collapseLayouts2"
     $(document).ready(function() {
+        $("#collapsePages_report").addClass("show");
         $("#mastera").addClass("show");
-        $("#masterb").addClass("show");
-        $("#master").addClass("active bg-success");
+       // $("#masterb").addClass("show");
+        $("#Master").addClass("active bg-success text-white");
     });
 </script>
 
