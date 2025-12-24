@@ -196,7 +196,7 @@ include_once '../database.php';
                                      if($_SESSION['role']=='super_admin'){
                                         //echo $_SESSION['username'];
                                         echo '
-                                        <a class="btn btn-info" href="http://10.3.13.87/storehl/super_admin/index.php">Admin Panel</a>
+                                        <a class="btn btn-info" href="http://'.$_SESSION['base_url'].'/super_admin/index.php">Admin Panel</a>
                                         ';
                                     }
                                     ?>
