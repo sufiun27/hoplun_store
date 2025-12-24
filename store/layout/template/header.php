@@ -183,7 +183,7 @@ include_once '../database.php';
                              <!-- Section + Mode Buttons -->
                     <div class="sb-sidenav-menu-heading">
                         <span class="btn btn-success btn-xs"><?php echo $_SESSION['section'] ?></span>
-                        <span>Mode-</span>
+                        <span>Mode</span>
                         <?php if($_SESSION['role']=='super_admin' || $_SESSION['role']=='group_admin'){ ?>
                             <a class="btn btn-info btn-xs" href="http://<?php echo $_SESSION['base_url'];?>/store/layout/start/change_role.php?section=GEN111">GEN</a>
                             <a class="btn btn-info btn-xs" href="http://<?php echo $_SESSION['base_url'];?>/store/layout/start/change_role.php?section=ELE111">MEC</a>
@@ -245,8 +245,8 @@ include_once '../database.php';
         <!-- <a id="collapseLayouts1_add" class="nav-link text-dark text-decoration-none" href="http://<?php //echo $_SESSION['base_url'];?>/store/layout/product/product_add.php">Add</a> -->
         <a id="collapseLayouts1_list" class="nav-link text-dark text-decoration-none" href="http://<?php echo $_SESSION['base_url'];?>/store/layout/product/product_list.php">List</a>
         <a id="collapseLayouts1_stock_out_list" class="nav-link text-dark text-decoration-none" href="http://<?php echo $_SESSION['base_url'];?>/store/layout/product/Product_stock_out_list.php">Stock Out List</a>
-        <a id="collapseLayouts1_add_category" class="nav-link text-dark text-decoration-none" href="http://<?php echo $_SESSION['base_url'];?>/store/layout/product/product_add_catagory_1.php">Add Category</a>
-        <a id="collapseLayouts1_category" class="nav-link text-dark text-decoration-none" href="http://<?php echo $_SESSION['base_url'];?>/store/layout/product/Product_category.php">Category</a>
+        <a id="collapseLayouts1_add_category" class="nav-link text-dark text-decoration-none" href="http://<?php echo $_SESSION['base_url'];?>/store/layout/product/product_add_catagory_1.php"> Category</a>
+        <!-- <a id="collapseLayouts1_category" class="nav-link text-dark text-decoration-none" href="http://<?php // echo $_SESSION['base_url'];?>/store/layout/product/Product_category.php">Category</a> -->
     </nav>
 </div>
 
