@@ -1,0 +1,6 @@
+2025-12-29 08:20:42 - Row 2 Error: SQLSTATE[23000]: [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot insert the value NULL into column 'c_id', table 'demo.dbo.item'; column does not allow nulls. INSERT fails.
+2025-12-29 08:20:42 - Row 3 Error: SQLSTATE[23000]: [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot insert the value NULL into column 'c_id', table 'demo.dbo.item'; column does not allow nulls. INSERT fails.
+2025-12-29 08:20:42 - Row 4 Error: SQLSTATE[23000]: [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot insert the value NULL into column 'c_id', table 'demo.dbo.item'; column does not allow nulls. INSERT fails.
+2025-12-29 08:23:23 - Row 2 Error: Could not create Category: Stationary
+2025-12-29 08:23:23 - Row 3 Error: Could not create Category: Stationary
+2025-12-29 08:23:23 - Row 4 Error: Could not create Category: Mouse
