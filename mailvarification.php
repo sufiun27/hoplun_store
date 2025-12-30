@@ -6,7 +6,7 @@
 
 
 
-$verification = false;
+$verification = true;
 
 
 // LDAP server settings

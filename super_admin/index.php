@@ -349,7 +349,7 @@ body{background:linear-gradient(120deg,#dbeafe,#f8fafc);font-family:"Inter","Seg
 <div class="col-6"><h2 class="mb-0">User Dashboard</h2></div>
 <div class="col-2 "><a class="btn btn-info" href="store_configure.php">Configure Store</a></div>
 <div class="col-2 "><a class="btn btn-info" href="store_configure_employee.php">Configure Employee</a></div>
-<div class="col-2 text-right"><a class="btn btn-danger" href="<?php echo esc($baseUrl); ?>logout/logout.php">Logout</a></div>
+<div class="col-2 text-right"><a class="btn btn-danger" href="../logout/logout.php">Logout</a></div>
 </div>
 
 <div class="row mb-4">
