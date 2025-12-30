@@ -346,7 +346,9 @@ body{background:linear-gradient(120deg,#dbeafe,#f8fafc);font-family:"Inter","Seg
 
 <div class="container mt-4 user-container">
 <div class="row align-items-center mb-4 border-bottom pb-2 dashboard-header">
-<div class="col-10"><h2 class="mb-0">User Dashboard</h2></div>
+<div class="col-6"><h2 class="mb-0">User Dashboard</h2></div>
+<div class="col-2 "><a class="btn btn-info" href="store_configure.php">Configure Store</a></div>
+<div class="col-2 "><a class="btn btn-info" href="store_configure_employee.php">Configure Employee</a></div>
 <div class="col-2 text-right"><a class="btn btn-danger" href="<?php echo esc($baseUrl); ?>logout/logout.php">Logout</a></div>
 </div>
 
@@ -354,14 +356,14 @@ body{background:linear-gradient(120deg,#dbeafe,#f8fafc);font-family:"Inter","Seg
 <div class="col-12">
 <nav class="nav nav-pills nav-fill rounded p-1">
 <a class="nav-item nav-link active" href="<?php echo esc($_SERVER['PHP_SELF']); ?>">Home</a>
-<a class="nav-item nav-link" href="fashion.php">Fashion</a>
-<a class="nav-item nav-link" href="brands.php">Brands</a>
-<a class="nav-item nav-link" href="intimate.php">Intimate</a>
-<a class="nav-item nav-link" href="diva.php">Diva</a>
-<a class="nav-item nav-link" href="legend.php">Legend</a>
-<a class="nav-item nav-link" href="heritage.php">Heritage</a>
-<a class="nav-item nav-link" href="demo.php">Demo</a>
-<a class="nav-item nav-link" href="bdcl.php">BDCL</a>
+<a class="nav-item nav-link" href="go_to_store.php?company=fashion">Fashion</a>
+<a class="nav-item nav-link" href="go_to_store.php?company=brands">Brands</a>
+<a class="nav-item nav-link" href="go_to_store.php?company=intimate">Intimate</a>
+<a class="nav-item nav-link" href="go_to_store.php?company=diva">Diva</a>
+<a class="nav-item nav-link" href="go_to_store.php?company=legend">Legend</a>
+<a class="nav-item nav-link" href="go_to_store.php?company=heritage">Heritage</a>
+<a class="nav-item nav-link" href="go_to_store.php?company=demo">Demo</a>
+<a class="nav-item nav-link" href="go_to_store.php?company=bdcl">BDCL</a>
 </nav>
 </div>
 </div>

@@ -6,13 +6,13 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // 1. Set the correct base path as a root-relative path (e.g., /gs)
 //    This should be set elsewhere, but we'll ensure it's correct here for demonstration.
-$_SESSION['base_url'] = $_SESSION['folder_path'] ?? '/gs'; 
+//$_SESSION['base_url'] = $_SESSION['folder_path'] ?? '/gs'; 
 
 // 2. Start session variable (if needed)
-$_SESSION['company'] = 'heritage';
+$_SESSION['company'] = $_GET['company'];
 
 // 3. Ensure base_url is set and clean it
-$baseUrl = $_SESSION['base_url'];
+$baseUrl = $_SESSION['folder_path'] ?? '/gs'; 
 
 // Ensure the base URL starts with a slash but doesn't end with one,
 // so we can reliably add the next path component.

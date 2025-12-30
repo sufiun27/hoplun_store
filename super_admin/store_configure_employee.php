@@ -1,4 +1,5 @@
 <?php
+//C:\xampp\htdocs\hoplun_store\super_admin\store_configure_employee.php
 declare(strict_types=1);
 
 /**
@@ -40,10 +41,7 @@ try {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Store Configuration - Excel Import
-
-      
-    </title>
+    <title>Store Configuration - Excel Import</title>
 
     <!-- XLSX -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
@@ -103,9 +101,8 @@ try {
 <body>
 
 <div class="container">
-    <h2>Store Configuration – Excel Import
-
-    <button class="btn btn-sm btn-secondary" style="float:right;" >
+    <h2>Employee Configuration – Excel Import
+        <button class="btn btn-sm btn-secondary" style="float:right;" >
             <a href="index.php">Back to Dashboard</a>
         </button>
     </h2>
@@ -117,19 +114,12 @@ try {
         <h4 id="preview_title" style="display:none;">Preview (First 10 Rows)</h4>
         <table id="preview_table"></table>
 
-        <form method="POST" action="process_import.php" id="import_form">
+        <form method="POST" action="store_configure_employee_store.php" id="import_form">
             <input type="hidden" name="excel_data" id="excel_data_input">
 
             <div class="form-row">
-                <!-- SECTION DROPDOWN -->
-                <select name="section" required>
-                    <option value="">Select Section</option>
-                    <?php foreach ($sections as $row): ?>
-                        <option value="<?= htmlspecialchars($row['name']) ?>">
-                            <?= htmlspecialchars($row['name']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                
+                
 
                 <!-- COMPANY / DB DROPDOWN -->
                 <select name="company" required>
@@ -188,19 +178,70 @@ document.getElementById('excel_file').addEventListener('change', function (e) {
     reader.readAsArrayBuffer(file);
 });
 
+// CREATE TABLE "department" (
+// 	"d_id" INT NOT NULL,
+// 	"d_name" VARCHAR(500) NOT NULL COLLATE 'SQL_Latin1_General_CP1_CI_AS',
+// 	"d_full_name" VARCHAR(500) NOT NULL COLLATE 'SQL_Latin1_General_CP1_CI_AS',
+// 	"d_add_date_time" DATETIME NOT NULL,
+// 	"d_add_by" VARCHAR(100) NOT NULL COLLATE 'SQL_Latin1_General_CP1_CI_AS',
+// 	"d_update_date_time" DATETIME NULL DEFAULT NULL,
+// 	"d_update_by" VARCHAR(100) NULL DEFAULT NULL COLLATE 'SQL_Latin1_General_CP1_CI_AS',
+// 	"d_active" BIT NOT NULL DEFAULT '(1)',
+// 	"d_inactive_by" VARCHAR(100) NULL DEFAULT NULL COLLATE 'SQL_Latin1_General_CP1_CI_AS',
+// 	"d_inactive_datetime" DATETIME NULL DEFAULT NULL,
+// 	PRIMARY KEY ("d_id"),
+// 	UNIQUE INDEX "UQ_department_d_name" ("d_name")
+// )
+// ;
+
+// CREATE TABLE "employee" (
+// 	"e_id" INT NOT NULL,
+// 	"e_com_id" VARCHAR(50) NOT NULL COLLATE 'SQL_Latin1_General_CP1_CI_AS',
+// 	"e_name" VARCHAR(500) NOT NULL COLLATE 'SQL_Latin1_General_CP1_CI_AS',
+// 	"d_id" INT NOT NULL,
+// 	"e_designation" VARCHAR(500) NOT NULL COLLATE 'SQL_Latin1_General_CP1_CI_AS',
+// 	"e_add_date_time" DATETIME NOT NULL,
+// 	"e_add_by" VARCHAR(100) NOT NULL COLLATE 'SQL_Latin1_General_CP1_CI_AS',
+// 	"e_update_date_time" DATETIME NULL DEFAULT NULL,
+// 	"e_update_by" VARCHAR(100) NULL DEFAULT NULL COLLATE 'SQL_Latin1_General_CP1_CI_AS',
+// 	"e_active" BIT NOT NULL DEFAULT '(1)',
+// 	"e_inactive_by" VARCHAR(100) NULL DEFAULT NULL COLLATE 'SQL_Latin1_General_CP1_CI_AS',
+// 	"e_inactive_datetime" DATETIME NULL DEFAULT NULL,
+// 	"user_type" VARCHAR(50) NULL DEFAULT NULL COLLATE 'SQL_Latin1_General_CP1_CI_AS',
+// 	FOREIGN KEY INDEX "FK_employee_d_id" ("d_id"),
+// 	PRIMARY KEY ("e_id"),
+// 	UNIQUE INDEX "UQ_employee_e_com_id" ("e_com_id"),
+// 	CONSTRAINT "FK_employee_d_id" FOREIGN KEY ("d_id") REFERENCES "department" ("d_id") ON UPDATE NO_ACTION ON DELETE NO_ACTION
+// )
+// ;
+
 function downloadTemplate() {
     const headers = [[
-        "Category Name", "Item Name", "Manufactured By", "Unit",
-        "Size", "Selling Price", "Stock Reminder", "Supplier Name",
-        "Receive Qty", "Purchase Price", "PO Number"
+        "Employee ID", "Employee Name", "Department", "Designation", "User Type"  
     ]];
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(headers);
     XLSX.utils.book_append_sheet(wb, ws, "Template");
-    XLSX.writeFile(wb, "Store_Setup_Template.xlsx");
+    XLSX.writeFile(wb, "Store_employee_Setup_Template.xlsx");
 }
 </script>
 
 </body>
 </html>
+
+
+<!-- make store_configure_employee_store.php 
+logic step one ,
+find the department id from department table if not found insert the department and get the id
+step two ,
+insert employee data into employee table with the department id , find by department name in department table , if employee id already exists skip that record
+
+use pod connection for database operations
+
+// 2. Database Credentials (Host and Auth remain same, DB is dynamic)
+$host = "10.3.13.87";
+$user = "sa";
+$pass = "sa@123";
+
+ms-sql db connection using pdo -->
