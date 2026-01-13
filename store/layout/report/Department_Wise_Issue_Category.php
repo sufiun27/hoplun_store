@@ -35,49 +35,53 @@ include 'Department_Wise_Issue_Class_Category.php';
                 $item_name = $_POST['item_name'];
                 $department = $_POST['department'];
                 $obj= new DateWiseReceive();
-                if( !empty($start_date) and !empty($end_date)){
-                    $reportData=$obj->DateWiseNameReceiveReport($item_name,$department,$start_date,$end_date);
-                }elseif (empty($start_date) and empty($end_date)){
-                    $reportData=$obj->ReceiveReport($department,$item_name);
-                   // print_r($reportData);
-                }
+                $reportData=$obj->DateWiseNameReceiveReport($start_date,$end_date,$item_name,$department);
+                // if( !empty($start_date) and !empty($end_date)){
+                //     $reportData=$obj->DateWiseNameReceiveReport($item_name,$department,$start_date,$end_date);
+                // }elseif (empty($start_date) and empty($end_date)){
+                //     $reportData=$obj->ReceiveReport($department,$item_name);
+                //    // print_r($reportData);
+                // }
             }
             ?>
             <!-------------------------------------------------->
             <?php
             //print_r($reportData);
             require 'vendor/autoload.php';
-
+           // Array ( [0] => Array ( [d_name] => Maintenance-03 [c_name] => MISCELLANEOUS-CARPENTER [i_name] => BRUSH 1"- 6" [quantity] => 12 [avg_price] => 1.0 [system_price] => 200.0 [total_price] => 12.0 [percentage] => .22 ) )
             if (isset($reportData)) {
 
 
                 // Export the report to an Excel file
                 $spreadsheet = new PhpOffice\PhpSpreadsheet\Spreadsheet();
                 $sheet = $spreadsheet->getActiveSheet();
-                $rowNumber = 1;
+                
 
                 // Set headers in the Excel file
                 $headers = ['Department', 'Category', 'Item', 'Quantity', 'Sys Price', 'Avg Price', 'Total Price', 'Percentage'];
-                $columnNumber = 1;
-                foreach ($headers as $header) {
-                    $sheet->setCellValueByColumnAndRow($columnNumber, $rowNumber, $header);
-                    $columnNumber++;
-                }
+                $sheet->fromArray($headers, null, 'A1');
 
                 // Set data in the Excel file
                 $rowNumber = 2;
                 foreach ($reportData as $row) {
-                    $columnNumber = 1;
-                    foreach ($row as $cellData) {
-                        $sheet->setCellValueByColumnAndRow($columnNumber, $rowNumber, $cellData);
-                        $columnNumber++;
-                    }
+                    $sheet->fromArray([
+                        $row['d_name'] ?? '',
+                        $row['c_name'] ?? '',
+                        $row['i_name'] ?? '',
+                        $row['quantity'] ?? '',
+                        $row['system_price'] ?? '',
+                        $row['avg_price'] ?? '',
+                        $row['total_price'] ?? '',
+                        $row['percentage'] ?? ''
+                    ], null, 'A' . $rowNumber);
+            
                     $rowNumber++;
                 }
 
                 // Save the Excel file
+                // Save file
+                $filename = 'CategoryWiseDepartmentWiseIssue.xlsx';
                 $writer = new PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-                $filename = 'Category_Wise_Department_Issue.xlsx';
                 $writer->save($filename);
             }
             ?>

@@ -98,7 +98,7 @@ include '../template/header.php';
         }
 
         // Save file
-        $filename = 'BalanceItems_' . date('Ymd_His') . '.xlsx';
+        $filename = 'BalanceItems.xlsx';
         $writer = new PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $writer->save($filename);
     }

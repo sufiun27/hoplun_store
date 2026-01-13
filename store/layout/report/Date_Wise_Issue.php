@@ -70,7 +70,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ], NULL, 'A' . $rowNum++);
         }
 
-        $filename = 'Date_Wise_Issue_' . date('Ymd_His') . '.xlsx';
+        $filename = 'Date_Wise_Issue.xlsx';
         $writer = new PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $writer->save($filename);
     }

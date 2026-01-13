@@ -120,7 +120,7 @@ include 'Department_Wise_Issue_Class.php';
                 }
             
                 // Save file
-                $filename = 'DepartmentWiseIssue_' . date('Ymd_His') . '.xlsx';
+                $filename = 'DepartmentWiseIssue.xlsx';
                 $writer = new PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
                 $writer->save($filename);
             }
