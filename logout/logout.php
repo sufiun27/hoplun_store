@@ -17,7 +17,7 @@ $pdo = null; // Assuming $pdo is your active database connection object
 
 // Redirect to the login page or any other appropriate page
 //localhost:8080/storehl
-$logout_url = "http://127.0.0.1/$filepath";
+$logout_url = "http://10.3.13.87/$filepath";
 header("Location:$logout_url");
 //header("Location:http://$base_url");
 exit();

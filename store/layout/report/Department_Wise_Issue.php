@@ -37,48 +37,91 @@ include 'Department_Wise_Issue_Class.php';
                 $item_name = $_POST['item_name'];
                 $department = $_POST['department'];
                 $obj= new DateWiseReceive();
-                if( !empty($start_date) and !empty($end_date)){
-                    $reportData=$obj->DateWiseNameReceiveReport($item_name,$department,$start_date,$end_date);
-                }elseif (empty($start_date) and empty($end_date)){
-                    $reportData=$obj->ReceiveReport($department,$item_name);
-                }
+
+                //generateReport
+                $reportData=$obj->DateWiseNameReceiveReport($start_date,$end_date,$item_name,$department);
+                // if( !empty($start_date) and !empty($end_date)){
+                //     $reportData=$obj->DateWiseNameReceiveReport($item_name,$department,$start_date,$end_date);
+                // }elseif (empty($start_date) and empty($end_date)){
+                //     $reportData=$obj->ReceiveReport($department,$item_name);
+                // }
             }
             ?>
             <!-------------------------------------------------->
             <?php
-            //print_r($reportData);
-            require 'vendor/autoload.php';
-
-            if (isset($reportData)) {
+            // print_r($reportData);
+             require 'vendor/autoload.php';
 
 
-                // Export the report to an Excel file
+            if (!empty($reportData)) {
+
+                require 'vendor/autoload.php';
+            
+                // Create spreadsheet
                 $spreadsheet = new PhpOffice\PhpSpreadsheet\Spreadsheet();
                 $sheet = $spreadsheet->getActiveSheet();
-                $rowNumber = 1;
-
-                // Set headers in the Excel file
-                $headers = ['Department', 'Category', 'Item', 'Unit', '	Size', 'Quantity', 'Sys Price', 'Avg Price', 'Total Price', 'Percentage'];
-                $columnNumber = 1;
-                foreach ($headers as $header) {
-                    $sheet->setCellValueByColumnAndRow($columnNumber, $rowNumber, $header);
-                    $columnNumber++;
-                }
-
-                // Set data in the Excel file
+            
+                // Excel headers
+                $headers = [
+                    'Department',
+                    'Category',
+                    'Item',
+                    'Unit',
+                    'Size',
+                    'Quantity',
+                    'Sys Price',
+                    'Avg Price',
+                    'Total Price',
+                    'Percentage'
+                ];
+            
+                // Set headers
+                $sheet->fromArray($headers, null, 'A1');
+            
+                // Start from row 2
                 $rowNumber = 2;
+            
                 foreach ($reportData as $row) {
-                    $columnNumber = 1;
-                    foreach ($row as $cellData) {
-                        $sheet->setCellValueByColumnAndRow($columnNumber, $rowNumber, $cellData);
-                        $columnNumber++;
-                    }
+                    /*
+                    Example row:
+                    [
+                      d_name => Maintenance-03
+                      c_name => MISCELLANEOUS-CARPENTER
+                      i_name => BRUSH 1"- 6"
+                      i_unit => PCS
+                      i_size => -
+                      quantity => 12
+                      system_price => 200.0
+                      avg_price => 1.0
+                      total_price => 12.0
+                      percentage => 100.0
+                    ]
+                    */
+            
+                    $sheet->fromArray([
+                        $row['d_name'] ?? '',
+                        $row['c_name'] ?? '',
+                        $row['i_name'] ?? '',
+                        $row['i_unit'] ?? '',
+                        $row['i_size'] ?? '',
+                        $row['quantity'] ?? 0,
+                        $row['system_price'] ?? 0,
+                        $row['avg_price'] ?? 0,
+                        $row['total_price'] ?? 0,
+                        $row['percentage'] ?? 0
+                    ], null, 'A' . $rowNumber);
+            
                     $rowNumber++;
                 }
-
-                // Save the Excel file
+            
+                // Auto-size columns
+                foreach (range('A', 'J') as $col) {
+                    $sheet->getColumnDimension($col)->setAutoSize(true);
+                }
+            
+                // Save file
+                $filename = 'DepartmentWiseIssue_' . date('Ymd_His') . '.xlsx';
                 $writer = new PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-                $filename = 'Item_Wise_Department_Issue.xlsx';
                 $writer->save($filename);
             }
             ?>
@@ -88,10 +131,10 @@ include 'Department_Wise_Issue_Class.php';
             <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
 
                 <label for="start_date">Start Date:</label>
-                <input type="datetime-local" name="start_date" >
+                <input type="date" name="start_date" >
 
                 <label for="end_date">End Date:</label>
-                <input type="datetime-local" name="end_date" >
+                <input type="date" name="end_date" >
 
                 <label for="department">Select a Department:</label>
                 <select name="department" id="department">

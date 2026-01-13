@@ -33,16 +33,17 @@ try {
             // Map Row Data based on your Excel structure
             // Index: 0:Cat, 1:Item, 2:Mfg, 3:Unit, 4:Size, 5:SellPrice, 6:Reminder, 7:Supplier, 8:Qty, 9:PurchPrice, 10:PO
             $catName    = $row[0];
-            $itemName   = $row[1];
-            $mfgBy      = $row[2];
-            $unit       = $row[3];
-            $size       = $row[4];
-            $sellPrice  = (float)$row[5];
-            $reminder   = (int)$row[6];
-            $supName    = $row[7];
-            $qty        = (int)$row[8];
-            $purchPrice = (float)$row[9];
-            $poNo       = $row[10];
+            $itemCode   = $row[1]; // Not used in insertion, but can be stored if needed
+            $itemName   = $row[2];
+            $mfgBy      = $row[3];
+            $unit       = $row[4];
+            $size       = $row[5];
+            $sellPrice  = (float)$row[6];
+            $reminder   = (int)$row[7];
+            $supName    = $row[8];
+            $qty        = (int)$row[9];
+            $purchPrice = (float)$row[10];
+            $poNo       = $row[11];
 
             // --- STEP 1: CATEGORY ---
             $stmt = $conn->prepare("SELECT c_id FROM category_item WHERE c_name = ? AND section = ?");
@@ -73,9 +74,9 @@ try {
             $i_id = $stmt->fetchColumn();
 
             if (!$i_id) {
-                $stmt = $conn->prepare("INSERT INTO item (i_name, i_add_datetime, c_id, i_unit, i_size, i_price, stock_out_reminder_qty, i_add_by, i_active, i_manufactured_by, section) 
-                                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)");
-                $stmt->execute([$itemName, $now, $c_id, $unit, $size, $sellPrice, $reminder, $currentUser, $mfgBy, $section]);
+                $stmt = $conn->prepare("INSERT INTO item (i_code, i_name, i_add_datetime, c_id, i_unit, i_size, i_price, stock_out_reminder_qty, i_add_by, i_active, i_manufactured_by, section) 
+                                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)");
+                $stmt->execute([$itemCode ,$itemName, $now, $c_id, $unit, $size, $sellPrice, $reminder, $currentUser, $mfgBy, $section]);
                 $i_id = $conn->lastInsertId();
             }
 

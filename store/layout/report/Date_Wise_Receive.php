@@ -28,15 +28,21 @@ include '../template/header.php';
             if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 //  include './db/db.php';
                 include 'Date_Wise_Receive_Class.php';
+
+
+
+
+
                 $start_date = $_POST['start_date'];
                 $end_date = $_POST['end_date'];
                 $item_name = $_POST['item_name'];
                 $obj= new DateWiseReceive();
-                if(isset($start_date) and isset($end_date) and isset( $item_name)){
-                    $reportData=$obj->DateWiseNameReceiveReport($start_date,$end_date,$item_name);
-                }elseif (isset($start_date) and isset($end_date)){
-                    $reportData=$obj->DateWiseReceiveReport($start_date,$end_date);
-                }
+                $reportData=$obj->generateReport($start_date,$end_date,$item_name);
+                // if(isset($start_date) and isset($end_date) and isset( $item_name)){
+                    
+                // }elseif (isset($start_date) and isset($end_date)){
+                //     $reportData=$obj->DateWiseReceiveReport($start_date,$end_date);
+                // }
             }
             ?>
             <!-------------------------------------------------->
@@ -76,7 +82,7 @@ include '../template/header.php';
                 $writer->save($filename);
             }
             } catch (Exception $e) {
-                echo 'An error occurred: ' . $e->getMessage();
+                //echo 'An error occurred: ' . $e->getMessage();
             }
             
             ?>
@@ -85,10 +91,10 @@ include '../template/header.php';
             <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
 
                 <label for="start_date">Start Date:</label>
-                <input type="datetime-local" name="start_date" required>
+                <input type="date" name="start_date" required>
 
                 <label for="end_date">End Date:</label>
-                <input type="datetime-local" name="end_date" required>
+                <input type="date" name="end_date" >
 
                 <label for="item_name">Item Name:</label>
                 <input type="text" name="item_name" >

@@ -185,9 +185,9 @@ include_once '../database.php';
                         <span class="btn btn-success btn-xs"><?php echo $_SESSION['section'] ?></span>
                         <span>Mode</span>
                         <?php if($_SESSION['role']=='super_admin' || $_SESSION['role']=='group_admin'){ ?>
-                            <a class="btn btn-info btn-xs" href="http://<?php echo $_SESSION['base_url'];?>/store/layout/start/change_role.php?section=GEN111">GEN</a>
-                            <a class="btn btn-info btn-xs" href="http://<?php echo $_SESSION['base_url'];?>/store/layout/start/change_role.php?section=ELE111">MEC</a>
-                            <a class="btn btn-info btn-xs" href="http://<?php echo $_SESSION['base_url'];?>/store/layout/start/change_role.php?section=ELE222">ELE</a>
+                            <a class="btn btn-info btn-xs" href="http://<?php echo $_SESSION['base_url'];?>/store/layout/start/change_role.php?section=GEN">GEN</a>
+                            <a class="btn btn-info btn-xs" href="http://<?php echo $_SESSION['base_url'];?>/store/layout/start/change_role.php?section=MEC">MEC</a>
+                            <a class="btn btn-info btn-xs" href="http://<?php echo $_SESSION['base_url'];?>/store/layout/start/change_role.php?section=ELE">ELE</a>
                         <?php } ?>
                     </div>
                              

@@ -190,7 +190,7 @@ document.getElementById('excel_file').addEventListener('change', function (e) {
 
 function downloadTemplate() {
     const headers = [[
-        "Category Name", "Item Name", "Manufactured By", "Unit",
+        "Category Name", "Item Code", "Item Name", "Manufactured By", "Unit",
         "Size", "Selling Price", "Stock Reminder", "Supplier Name",
         "Receive Qty", "Purchase Price", "PO Number"
     ]];

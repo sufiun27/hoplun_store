@@ -1,8 +1,11 @@
 <?php
-
+ob_start();
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
+
+// print_r($_POST);
+// exit();
 
 // print_r($_POST);
 // exit();
